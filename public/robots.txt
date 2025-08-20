@@ -1,0 +1,159 @@
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    const host = url.host;
+    const isTextRoute = url.pathname === '/robots.txt' || url.pathname === '/llms.txt' || url.pathname === '/ai.txt';
+    const method = request.method;
+
+    // Version bump = instant cache bust for CDNs and clients
+    const VERSION = '2025-08-14';
+
+    if (isTextRoute) {
+      // One source of truth for all bot policies
+      const body = buildRobotsBody(host);
+
+      // ETag and Last-Modified for 304s
+      const etag = `W/"${VERSION}-${host}-${body.length}"`;
+      const ifNoneMatch = request.headers.get('If-None-Match');
+
+      if (ifNoneMatch && ifNoneMatch === etag) {
+        return new Response(null, { status: 304, headers: commonHeaders(etag) });
+      }
+
+      if (method === 'HEAD') {
+        return new Response(null, { headers: commonHeaders(etag, body.length) });
+      }
+
+      return new Response(body, { headers: commonHeaders(etag, body.length) });
+    }
+
+    // Everything else → origin (Pixieset)
+    // Light caching hints for 2xx, avoid caching errors
+    const originRequest = new Request(request, {
+      cf: { cacheTtlByStatus: { '200-299': 300, 404: 0, '500-599': 0 } }
+    });
+    return fetch(originRequest);
+  }
+}
+
+function commonHeaders(etag, contentLength) {
+  const headers = new Headers();
+  headers.set('Content-Type', 'text/plain; charset=utf-8');
+  headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400, must-revalidate');
+  headers.set('X-Content-Type-Options', 'nosniff');
+  headers.set('ETag', etag);
+  headers.set('Last-Modified', new Date().toUTCString());
+  if (contentLength !== undefined) headers.set('Content-Length', String(contentLength));
+  return headers;
+}
+
+function buildRobotsBody(host) {
+  // Build sitemap from the current host so this works on www or apex
+  const sitemap = `https://${host}/sitemap.xml`;
+
+  // Keep explicit allows for key AI and search agents, then fall back to *
+  // Note: If you ever want to OPT OUT of model training while keeping search indexing,
+  // switch Google-Extended or Applebot-Extended to "Disallow: /".
+  return `# robots.txt for ${host}
+# AI and search crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+# robots.txt for www.ranklocalnow.com
+
+# OpenAI
+User-agent: GPTBot
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: OAI-SearchBot
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: ChatGPT-User
+Allow: /
+Content-Usage: tdm=y
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+Content-Usage: tdm=y
+
+# Anthropic
+User-agent: ClaudeBot
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: Claude-Web
+Allow: /
+Content-Usage: tdm=y
+
+# Google
+User-agent: Googlebot
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: Google-Extended
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: GoogleOther
+Allow: /
+Content-Usage: tdm=y
+
+# Microsoft
+User-agent: bingbot
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: BingPreview
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: AdIdxBot
+Allow: /
+Content-Usage: tdm=y
+
+# Apple
+User-agent: Applebot
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: Applebot-Extended
+Allow: /
+Content-Usage: tdm=y
+
+# Common Crawl
+User-agent: CCBot
+Allow: /
+Content-Usage: tdm=y
+
+# Others (AI / research bots)
+User-agent: AndiBot
+Allow: /
+Content-Usage: tdm=y
+
+User-agent: ExaBot
+Allow: /
+Content-Usage: tdm=y
+
+# Catch-all (general crawlers, no TDM permission)
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.ranklocalnow.com/sitemap.xml
