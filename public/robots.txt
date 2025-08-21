@@ -3,80 +3,56 @@
 # OpenAI
 User-agent: GPTBot
 Allow: /
-Content-Usage: tdm=y
 
 User-agent: OAI-SearchBot
 Allow: /
-Content-Usage: tdm=y
 
 User-agent: ChatGPT-User
 Allow: /
-Content-Usage: tdm=y
 
 # Perplexity
 User-agent: PerplexityBot
 Allow: /
-Content-Usage: tdm=y
 
 # Anthropic
 User-agent: ClaudeBot
 Allow: /
-Content-Usage: tdm=y
-
 User-agent: Claude-Web
 Allow: /
-Content-Usage: tdm=y
 
 # Google
 User-agent: Googlebot
 Allow: /
-Content-Usage: tdm=y
-
 User-agent: Google-Extended
 Allow: /
-Content-Usage: tdm=y
-
 User-agent: GoogleOther
 Allow: /
-Content-Usage: tdm=y
 
 # Microsoft
 User-agent: bingbot
 Allow: /
-Content-Usage: tdm=y
-
 User-agent: BingPreview
 Allow: /
-Content-Usage: tdm=y
-
 User-agent: AdIdxBot
 Allow: /
-Content-Usage: tdm=y
 
 # Apple
 User-agent: Applebot
 Allow: /
-Content-Usage: tdm=y
-
 User-agent: Applebot-Extended
 Allow: /
-Content-Usage: tdm=y
 
 # Common Crawl
 User-agent: CCBot
 Allow: /
-Content-Usage: tdm=y
 
 # Others (AI / research bots)
 User-agent: AndiBot
 Allow: /
-Content-Usage: tdm=y
-
 User-agent: ExaBot
 Allow: /
-Content-Usage: tdm=y
 
-# Catch-all (general crawlers, no TDM permission)
+# Catch-all
 User-agent: *
 Allow: /
 
